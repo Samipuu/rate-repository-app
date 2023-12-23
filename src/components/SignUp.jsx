@@ -5,9 +5,11 @@ import { Formik, useField } from 'formik';
 import theme from '../theme';
 import * as yup from 'yup';
 import useSignIn from '../hooks/useSignIn';
-import SignInForm from './SignInForm';
+import SignUpForm from './SignUpForm';
+import { useMutation } from '@apollo/client';
 
 import { useNavigate } from 'react-router-native';
+import { SIGN_UP } from '../graphql/mutations';
 
 const styles = StyleSheet.create({
   container: {
@@ -19,22 +21,35 @@ const styles = StyleSheet.create({
 });
 
 const initialValues = {
-  account: '',
+  username: '',
   password: '',
+  confirmPassword: '',
 };
 
 const validationSchema = yup.object().shape({
-  account: yup.string().required('Account name is required'),
-  password: yup.string().required('Password is required'),
+  username: yup.string().min(5).max(30).required('Username is required'),
+  password: yup.string().min(5).max(50).required('Password is required'),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref('password'), null])
+    .required('Password confirmation is required'),
 });
 
-const SignIn = () => {
+const SignUp = () => {
   const [signIn] = useSignIn();
+  const [mutate, result] = useMutation(SIGN_UP);
   const navigate = useNavigate();
   const onSubmit = async (values) => {
-    console.log(values);
-    const { account, password } = values;
+    const { username, password } = values;
 
+    try {
+      const { data } = await mutate({
+        variables: { user: { username: username, password: password } },
+      });
+    } catch (e) {
+      console.log(e);
+    }
+    const account = username;
     try {
       await signIn({ account, password });
       navigate('/');
@@ -50,10 +65,10 @@ const SignIn = () => {
         onSubmit={onSubmit}
         validationSchema={validationSchema}
       >
-        {({ handleSubmit }) => <SignInForm onSubmit={handleSubmit} />}
+        {({ handleSubmit }) => <SignUpForm onSubmit={handleSubmit} />}
       </Formik>
     </View>
   );
 };
 
-export default SignIn;
+export default SignUp;

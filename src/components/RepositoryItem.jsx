@@ -1,7 +1,9 @@
-import { View, Image, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet, Pressable } from 'react-native';
 import StatItem from './StatItem';
 import theme from '../theme';
 import Text from './Text';
+import { openURL } from 'expo-linking';
+import { useNavigate } from 'react-router-native';
 
 const styles = StyleSheet.create({
   flexContainer: {
@@ -40,43 +42,64 @@ const styles = StyleSheet.create({
     flexGrow: 0,
     padding: 5,
     borderRadius: 5,
+    textAlign: 'center',
   },
 });
 
 const RepositoryItem = ({ item }) => {
-  console.log(item);
+  //console.log(item);
+  const navigate = useNavigate();
+  const handlePress = () => {
+    openURL(item.url);
+  };
 
   return (
-    <View style={styles.flexContainer}>
-      <View style={styles.flexRow}>
-        <View>
-          <Image
-            source={{ uri: item.ownerAvatarUrl }}
-            style={styles.tinyLogo}
-          />
+    <Pressable
+      onPress={() => {
+        console.log(item);
+        navigate(`/repo/${item.id}`);
+      }}
+    >
+      <View style={styles.flexContainer} testID='repositoryItem'>
+        <View style={styles.flexRow}>
+          <View>
+            <Image
+              source={{ uri: item.ownerAvatarUrl }}
+              style={styles.tinyLogo}
+            />
+          </View>
+          <View style={styles.flexColumn}>
+            <View style={styles.name}>
+              <Text fontSize='subheading' fontWeight='bold'>
+                {item.fullName}
+              </Text>
+            </View>
+            <View style={styles.desc}>
+              <Text color='secondary'>{item.description}</Text>
+            </View>
+            <View style={styles.lang}>
+              <Text color='white'>{item.language}</Text>
+            </View>
+          </View>
         </View>
-        <View style={styles.flexColumn}>
-          <View style={styles.name}>
-            <Text fontSize='subheading' fontWeight='bold'>
-              {item.fullName}
-            </Text>
-          </View>
-          <View style={styles.desc}>
-            <Text color='secondary'>{item.description}</Text>
-          </View>
-          <View style={styles.lang}>
-            <Text color='white'>{item.language}</Text>
-          </View>
-        </View>
-      </View>
 
-      <View style={styles.stats}>
-        <StatItem name='Stars' value={item.stargazersCount} />
-        <StatItem name='Forks' value={item.forksCount} />
-        <StatItem name='Reviews' value={item.reviewCount} />
-        <StatItem name='Rating' value={item.ratingAverage} />
+        <View style={styles.stats}>
+          <StatItem name='Stars' value={item.stargazersCount} />
+          <StatItem name='Forks' value={item.forksCount} />
+          <StatItem name='Reviews' value={item.reviewCount} />
+          <StatItem name='Rating' value={item.ratingAverage} />
+        </View>
+        {item.url ? (
+          <View style={styles.lang}>
+            <Pressable onPress={handlePress}>
+              <Text color='white'>Open in GitHub</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <></>
+        )}
       </View>
-    </View>
+    </Pressable>
   );
 };
 
